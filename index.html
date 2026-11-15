@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>51 do pobede — Srpski Izborni Simulator (270toWin)</title>
+  <title>Predsednički izbori u Srbiji - Electoral College</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -253,10 +253,6 @@
           <label class="inline-flex items-center gap-1.5 cursor-pointer select-none font-medium">
             <input type="checkbox" id="toggle-names" checked class="rounded text-blue-600 focus:ring-blue-500" />
             <span>Prikaži nazive regiona</span>
-          </label>
-          <label class="inline-flex items-center gap-1.5 cursor-pointer select-none font-medium">
-            <input type="checkbox" id="toggle-kosovo" checked class="rounded text-blue-600 focus:ring-blue-500" />
-            <span>Prikaži KiM (bez elektora)</span>
           </label>
         </div>
         <span class="text-[11px] text-slate-400 italic">Kliknite na region za promenu statusa</span>
@@ -878,9 +874,6 @@
         });
       });
 
-      document.getElementById('toggle-kosovo').addEventListener('change', (e) => {
-        document.getElementById('kosovo-layer').style.display = e.target.checked ? 'block' : 'none';
-      });
 
       // Predefinisani scenariji
       document.getElementById('preset-select').addEventListener('change', (e) => {
