@@ -1,942 +1,1216 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Predsednički izbori u Srbiji - Electoral College</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f1f5f9;
-      color: #0f172a;
-      overflow-x: hidden;
-    }
-
-    /* SVG Region styles */
-    .region-path {
-      stroke: #0f172a;
-      stroke-width: 3.2px;
-      stroke-linejoin: round;
-      stroke-linecap: round;
-      cursor: pointer;
-      transition: fill 0.2s ease, filter 0.15s ease, stroke-width 0.15s ease;
-    }
-
-    .region-path:hover {
-      filter: brightness(1.08);
-      stroke-width: 4.5px;
-    }
-
-    .kosovo-path {
-      stroke: #1e293b;
-      stroke-width: 3px;
-      stroke-linejoin: round;
-      stroke-linecap: round;
-      transition: fill 0.2s ease, opacity 0.2s ease;
-    }
-
-    .region-label-electors {
-      font-weight: 900;
-      font-size: 22px;
-      fill: #ffffff;
-      text-anchor: middle;
-      dominant-baseline: central;
-      pointer-events: none;
-      paint-order: stroke;
-      stroke: rgba(15, 23, 42, 0.75);
-      stroke-width: 3.5px;
-      stroke-linejoin: round;
-    }
-
-    .region-label-name {
-      font-weight: 700;
-      font-size: 10.5px;
-      fill: #ffffff;
-      text-anchor: middle;
-      dominant-baseline: central;
-      pointer-events: none;
-      paint-order: stroke;
-      stroke: rgba(15, 23, 42, 0.85);
-      stroke-width: 2.8px;
-      stroke-linejoin: round;
-      letter-spacing: 0.02em;
-    }
-
-    .kosovo-label {
-      font-weight: 700;
-      font-size: 11px;
-      fill: #475569;
-      text-anchor: middle;
-      dominant-baseline: central;
-      pointer-events: none;
-    }
-
-    /* Custom subtle pattern for undecided/tossup */
-    .bar-segment {
-      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
-    }
-
-    /* Tooltip */
-    #map-tooltip {
-      pointer-events: none;
-      transition: opacity 0.12s ease, transform 0.12s ease;
-      z-index: 50;
-    }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #e2e8f0;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #94a3b8;
-      border-radius: 9999px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>270 do Pobede — Izborna mapa okruga Srbije</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0e1b;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #141834;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+        .district-path {
+            transition: fill 0.15s ease, filter 0.15s ease, stroke-width 0.15s ease;
+            cursor: pointer;
+        }
+        .district-path:hover {
+            filter: brightness(1.25);
+            stroke: #ffffff;
+            stroke-width: 2.4px;
+            z-index: 20;
+        }
+        .kosmet-path {
+            cursor: not-allowed;
+            transition: filter 0.15s ease;
+        }
+        .kosmet-path:hover {
+            filter: brightness(1.12);
+        }
+        .district-label {
+            pointer-events: none;
+            user-select: none;
+            text-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.98), 0 0 2px rgba(0, 0, 0, 0.98);
+        }
+        .kosmet-banner-text {
+            pointer-events: none;
+            user-select: none;
+            letter-spacing: 0.2em;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.98);
+        }
+    </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-[#0c0e1b] text-white selection:bg-indigo-500 selection:text-white">
 
-  <!-- TOP NAVIGATION / HEADER -->
-  <header class="bg-[#0f172a] text-white border-b border-slate-800 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-red-600 font-black text-lg tracking-tighter shadow-inner border border-white/20">
-          51
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">51 DO POBEDE</h1>
-            <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-amber-400 border border-slate-700">Srpski 270toWin</span>
-          </div>
-          <p class="text-xs text-slate-400">Interaktivni izborni kalkulator Srbije • 8 izbornih jedinica • 100 elektora</p>
-        </div>
-      </div>
-
-      <!-- Preset Scenarios & Share -->
-      <div class="flex flex-wrap items-center gap-2">
-        <select id="preset-select" aria-label="Izaberi scenario" class="bg-slate-800 text-slate-200 text-xs sm:text-sm font-medium rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-          <option value="empty">Prazna mapa (Svi neodlučni)</option>
-          <option value="baseline">Početna projekcija (Realistično)</option>
-          <option value="north_south">Podela Sever – Jug</option>
-          <option value="belgrade_decides">Beograd odlučuje (49 vs 26)</option>
-          <option value="blue_wave">Ubedljiva pobeda Opcije A</option>
-          <option value="red_wave">Ubedljiva pobeda Opcije B</option>
-        </select>
-
-        <button id="btn-share" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg border border-slate-700 transition">
-          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-          <span>Kopiraj rezultat</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ELECTORAL BAR SECTION (270toWin Style) -->
-  <section class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4">
-      
-      <!-- Candidate Headers & Scores -->
-      <div class="grid grid-cols-3 items-end mb-2 gap-2">
-        <!-- Candidate A (Blue) -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <input type="color" id="color-a" value="#1d4ed8" title="Promeni boju Opcije A" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg cursor-pointer border-0 bg-transparent p-0" />
-          <div class="min-w-0">
-            <input type="text" id="name-a" value="Kandidat A (Plavi)" maxlength="24" class="font-bold text-xs sm:text-base text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-600 focus:outline-none w-full truncate" />
-            <div class="flex items-baseline gap-2">
-              <span id="score-a" class="text-2xl sm:text-4xl font-black tracking-tight text-blue-700">0</span>
-              <span id="breakdown-a" class="hidden md:inline text-[11px] font-medium text-slate-500">Sigurno: 0 | Verov: 0 | Naginje: 0</span>
+    <!-- Navigacija / Zaglavlje -->
+    <header class="bg-[#141834]/90 backdrop-blur-md border-b border-[#2d3770] shadow-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-red-500 flex items-center justify-center font-black text-lg shadow-lg border border-white/30">
+                    270
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight leading-none text-white">
+                        270 DO POBEDE <span class="text-indigo-300 font-semibold text-sm ml-1">SRBIJA</span>
+                    </h1>
+                    <p class="text-xs text-indigo-200/85 mt-0.5">Elektorska mapa upravnih okruga (538 elektora • Popis 2022)</p>
+                </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Center Status / 51 to Win -->
-        <div class="text-center pb-1">
-          <div id="winner-banner" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs sm:text-sm font-extrabold tracking-tight">
-            <span>51 DO POBEDE</span>
-          </div>
-          <div class="text-[11px] sm:text-xs font-semibold text-slate-500 mt-1">
-            Neodlučno: <span id="score-tossup" class="font-bold text-slate-800">100</span>
-          </div>
-        </div>
-
-        <!-- Candidate B (Red) -->
-        <div class="flex items-center justify-end gap-2 sm:gap-3 text-right">
-          <div class="min-w-0">
-            <input type="text" id="name-b" value="Kandidat B (Crveni)" maxlength="24" class="font-bold text-xs sm:text-base text-slate-800 text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-red-600 focus:outline-none w-full truncate" />
-            <div class="flex items-baseline justify-end gap-2">
-              <span id="breakdown-b" class="hidden md:inline text-[11px] font-medium text-slate-500">Naginje: 0 | Verov: 0 | Sigurno: 0</span>
-              <span id="score-b" class="text-2xl sm:text-4xl font-black tracking-tight text-red-600">0</span>
+            <!-- Kontrole / Scenariji -->
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="preset-select" aria-label="Izaberi izborni scenario" class="px-3.5 py-2 rounded-xl bg-[#0c0e1b] hover:bg-[#1c224a] text-xs sm:text-sm font-semibold text-white border border-[#2d3770] focus:outline-none focus:border-indigo-400 transition cursor-pointer shadow">
+                    <option value="">📊 Brzi scenariji...</option>
+                    <option value="egal">⚖️ Popis / Egal (269 : 269)</option>
+                    <option value="north-south">🧭 Sever vs Jug</option>
+                    <option value="bg-vojvodina">🏙️ Beograd + Vojvodina vs Ostali</option>
+                    <option value="central-serbia">🏛️ Centralna Srbija vs Sever i Jug</option>
+                    <option value="landslide-a">🔵 Ubedljiva pobeda A</option>
+                    <option value="landslide-b">🔴 Ubedljiva pobeda B</option>
+                    <option value="random">🎲 Nasumična simulacija</option>
+                </select>
+                <button id="btn-reset" class="px-3.5 py-2 rounded-xl bg-[#1c224a] hover:bg-indigo-900 active:scale-95 text-xs sm:text-sm font-semibold transition border border-[#2d3770] flex items-center gap-1.5 shadow">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Resetuj
+                </button>
+                <button id="btn-share" class="px-3.5 py-2 rounded-xl bg-[#4f46e5] hover:bg-[#6366f1] active:scale-95 text-xs sm:text-sm font-semibold transition border border-indigo-400/70 flex items-center gap-1.5 shadow">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Kopiraj
+                </button>
             </div>
-          </div>
-          <input type="color" id="color-b" value="#dc2626" title="Promeni boju Opcije B" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg cursor-pointer border-0 bg-transparent p-0" />
         </div>
-      </div>
+    </header>
 
-      <!-- Horizontal Stacked Electoral Bar -->
-      <div class="relative pt-1 pb-2">
-        <div class="w-full h-8 sm:h-9 bg-slate-200 rounded-xl overflow-hidden flex shadow-inner border border-slate-300 relative">
-          <!-- A Safe -->
-          <div id="bar-a-safe" class="bar-segment h-full flex items-center justify-center text-white text-xs font-bold overflow-hidden" style="width: 0%; background-color: #1d4ed8;"></div>
-          <!-- A Likely -->
-          <div id="bar-a-likely" class="bar-segment h-full flex items-center justify-center text-white text-xs font-bold overflow-hidden" style="width: 0%; background-color: #3b82f6;"></div>
-          <!-- A Lean -->
-          <div id="bar-a-lean" class="bar-segment h-full flex items-center justify-center text-slate-900 text-xs font-bold overflow-hidden" style="width: 0%; background-color: #93c5fd;"></div>
-          
-          <!-- Tossup / Undecided -->
-          <div id="bar-tossup" class="bar-segment h-full flex items-center justify-center text-slate-600 text-xs font-bold bg-[#e5e0d8] overflow-hidden" style="width: 100%;"></div>
-          
-          <!-- B Lean -->
-          <div id="bar-b-lean" class="bar-segment h-full flex items-center justify-center text-slate-900 text-xs font-bold overflow-hidden" style="width: 0%; background-color: #fca5a5;"></div>
-          <!-- B Likely -->
-          <div id="bar-b-likely" class="bar-segment h-full flex items-center justify-center text-white text-xs font-bold overflow-hidden" style="width: 0%; background-color: #ef4444;"></div>
-          <!-- B Safe -->
-          <div id="bar-b-safe" class="bar-segment h-full flex items-center justify-center text-white text-xs font-bold overflow-hidden" style="width: 0%; background-color: #dc2626;"></div>
+    <!-- Glavni sadržaj -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-5 flex flex-col gap-5">
+
+        <!-- Semafor / Elektorska traka -->
+        <section class="bg-[#141834] rounded-2xl p-4 sm:p-5 border border-[#2d3770] shadow-2xl relative overflow-hidden">
+            <div id="winner-banner" class="hidden mb-4 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0c0e1b] via-[#4f46e5] to-[#0c0e1b] border border-indigo-400/80 text-center shadow-lg animate-pulse">
+                <span id="winner-text" class="text-sm sm:text-base font-extrabold tracking-wide text-white uppercase"></span>
+            </div>
+
+            <div class="grid grid-cols-3 items-end gap-2 mb-3">
+                <!-- Kandidat A (Plavi) -->
+                <div class="flex flex-col items-start">
+                    <div class="flex items-center gap-1.5 w-full max-w-[240px]">
+                        <span class="w-3.5 h-3.5 rounded-full bg-blue-500 shrink-0 shadow"></span>
+                        <input id="name-blue" type="text" value="Kandidat A (Plavi)" aria-label="Ime plavog kandidata"
+                            class="bg-[#0c0e1b]/90 hover:bg-[#0c0e1b] focus:bg-[#0c0e1b] text-white font-bold text-sm sm:text-base px-2.5 py-1 rounded-lg border border-[#2d3770] focus:border-blue-400 focus:outline-none w-full transition" />
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span id="score-blue" class="text-3xl sm:text-4xl font-black text-blue-400 leading-none">0</span>
+                        <span class="text-xs text-indigo-200 font-medium">elektora</span>
+                    </div>
+                </div>
+
+                <!-- Središnji deo: 270 za pobedu -->
+                <div class="flex flex-col items-center text-center">
+                    <span class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-white bg-[#1c224a] px-3.5 py-1 rounded-full border border-[#2d3770] shadow">
+                        270 ZA POBEDU
+                    </span>
+                    <div class="flex flex-wrap items-center justify-center gap-3 mt-1.5 text-xs sm:text-sm font-semibold text-indigo-200">
+                        <span>Neopredeljeno: <strong id="score-tossup" class="text-white">538</strong></span>
+                        <span id="other-score-wrap" class="hidden text-amber-400">Kandidat C: <strong id="score-amber">0</strong></span>
+                    </div>
+                </div>
+
+                <!-- Kandidat B (Crveni) -->
+                <div class="flex flex-col items-end">
+                    <div class="flex items-center justify-end gap-1.5 w-full max-w-[240px]">
+                        <input id="name-red" type="text" value="Kandidat B (Crveni)" aria-label="Ime crvenog kandidata"
+                            class="bg-[#0c0e1b]/90 hover:bg-[#0c0e1b] focus:bg-[#0c0e1b] text-white font-bold text-sm sm:text-base text-right px-2.5 py-1 rounded-lg border border-[#2d3770] focus:border-red-400 focus:outline-none w-full transition" />
+                        <span class="w-3.5 h-3.5 rounded-full bg-red-500 shrink-0 shadow"></span>
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-xs text-indigo-200 font-medium">elektora</span>
+                        <span id="score-red" class="text-3xl sm:text-4xl font-black text-red-400 leading-none">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progres traka sa tačnom linijom na 270 -->
+            <div class="relative w-full h-8 sm:h-9 bg-[#0c0e1b] rounded-xl overflow-hidden flex border border-[#2d3770] shadow-inner">
+                <div id="bar-blue" class="h-full bg-blue-500 transition-all duration-300 flex items-center justify-start pl-2.5 text-xs font-extrabold text-white overflow-hidden" style="width: 0%;"></div>
+                <div id="bar-amber" class="h-full bg-amber-500 transition-all duration-300 flex items-center justify-center text-xs font-extrabold text-slate-950 overflow-hidden" style="width: 0%;"></div>
+                <div id="bar-tossup" class="h-full bg-slate-600/40 transition-all duration-300" style="width: 100%;"></div>
+                <div id="bar-red" class="h-full bg-red-500 transition-all duration-300 flex items-center justify-end pr-2.5 text-xs font-extrabold text-white overflow-hidden" style="width: 0%;"></div>
+
+                <!-- Oznaka 270 (tacno 50.1858%) -->
+                <div class="absolute top-0 bottom-0 left-[50.19%] -translate-x-1/2 w-0.5 bg-white z-20 shadow-[0_0_10px_rgba(255,255,255,1)]"></div>
+            </div>
+
+            <!-- Paleta / Četkica -->
+            <div class="mt-4 pt-3 border-t border-[#2d3770] flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-indigo-200 font-semibold mr-1">Režim klika:</span>
+                    <button data-brush="cycle" class="brush-btn px-3 py-1.5 rounded-lg font-semibold bg-[#4f46e5] text-white border border-indigo-400 transition shadow">
+                        🔄 Redom (klik)
+                    </button>
+                    <button data-brush="blue" class="brush-btn px-3 py-1.5 rounded-lg font-semibold bg-[#0c0e1b] hover:bg-blue-950 text-blue-300 border border-blue-500/40 transition">
+                        🔵 Plavi
+                    </button>
+                    <button data-brush="red" class="brush-btn px-3 py-1.5 rounded-lg font-semibold bg-[#0c0e1b] hover:bg-red-950 text-red-300 border border-red-500/40 transition">
+                        🔴 Crveni
+                    </button>
+                    <button id="btn-brush-amber" data-brush="amber" class="brush-btn hidden px-3 py-1.5 rounded-lg font-semibold bg-[#0c0e1b] hover:bg-amber-950 text-amber-300 border border-amber-500/40 transition">
+                        🟡 Kandidat C
+                    </button>
+                    <button data-brush="tossup" class="brush-btn px-3 py-1.5 rounded-lg font-semibold bg-[#0c0e1b] hover:bg-slate-800 text-slate-300 border border-slate-500/40 transition">
+                        ⚪ Neopredeljeno
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-indigo-200 hover:text-white font-medium select-none">
+                        <input id="toggle-third-party" type="checkbox" class="rounded bg-[#0c0e1b] border-[#2d3770] text-indigo-500 focus:ring-indigo-500 w-4 h-4 cursor-pointer" />
+                        <span>Treći kandidat (C)</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Glavni grid: Karta i Tabela -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+            <!-- Leva kolona: Miculasto precizna SVG Karta (7 kolona) -->
+            <section class="lg:col-span-7 bg-[#141834] rounded-2xl p-4 sm:p-5 border border-[#2d3770] shadow-2xl relative flex flex-col items-center">
+                <div class="w-full flex items-center justify-between mb-2">
+                    <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        Mapa upravnih okruga Srbije
+                    </h2>
+                    <span class="text-xs text-indigo-200 bg-[#0c0e1b] px-2.5 py-1 rounded-lg border border-[#2d3770]">
+                        Klik: promena • Desni klik: unazad
+                    </span>
+                </div>
+
+                <!-- Kontejner SVG mape (tačan odnos 1000 x 1453) -->
+                <div id="map-container" class="w-full max-w-[560px] relative select-none my-1 rounded-xl overflow-hidden border border-[#2d3770] shadow-2xl bg-[#080a18]">
+                    <svg id="serbia-svg" viewBox="0 0 1000 1453" class="w-full h-auto block" role="img" aria-label="Detaljna elektorska mapa Srbije">
+                        <defs>
+                            <!-- Dijagonalna šrafura za okupirano Kosovo i Metohiju -->
+                            <pattern id="kosmet-hatch" width="16" height="16" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                                <rect width="16" height="16" fill="#141834" />
+                                <line x1="0" y1="0" x2="0" y2="16" stroke="#2d3770" stroke-width="5" />
+                            </pattern>
+                        </defs>
+
+                        <!-- Pozadina susednih država i Jadranskog mora -->
+                        <g id="layer-neighbors">
+                            <rect x="0" y="0" width="1000" height="1453" fill="#080a18" />
+                            <!-- Jadransko more i Boka Kotorska -->
+                            <path d="M 0,1178 L 12,1184 L 16,1202 L 4,1212 L 8,1232 L 32,1268 L 58,1298 L 96,1334 L 138,1362 L 154,1346 L 132,1318 L 116,1306 L 136,1282 L 152,1294 L 170,1318 L 146,1338 L 142,1362 L 172,1392 L 204,1414 L 194,1434 L 202,1453 L 0,1453 Z" fill="#0b1638" stroke="#2563eb" stroke-opacity="0.6" stroke-width="2" />
+                            <!-- Okolne granice -->
+                            <path d="M 346,66 L 368,46 L 392,38 L 418,46 L 444,34 L 468,16 L 494,12 L 518,18 L 538,0" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 0,126 L 22,134 L 36,128" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 0,418 L 16,422 L 22,448 L 44,462 L 72,464 L 96,454 L 106,442" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 0,972 L 18,956 L 36,964 L 54,946 L 78,966 L 84,942 L 62,916 L 52,894 L 74,882 L 102,884 L 126,866" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 146,1453 L 154,1424 L 144,1396 L 146,1362 L 136,1318 L 156,1274 L 152,1236 L 166,1198 L 194,1178 L 226,1154 L 254,1164 L 274,1148 L 288,1136" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 418,1394 L 414,1424 L 402,1453" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 836,1334 L 866,1356 L 896,1374 L 926,1396 L 946,1432 L 958,1453" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                            <path d="M 884,742 L 914,746 L 946,742 L 966,758 L 952,782 L 968,798 L 1000,794" fill="none" stroke="#23295c" stroke-width="4" stroke-linecap="round" />
+                        </g>
+
+                        <!-- 25 aktivnih okruga Srbije -->
+                        <g id="layer-districts"></g>
+
+                        <!-- 5 okruga Kosova i Metohije -->
+                        <g id="layer-kosmet"></g>
+
+                        <!-- Spoljašnja granica -->
+                        <path id="serbia-outer-border" fill="none" stroke="#818cf8" stroke-width="3" stroke-linejoin="round" pointer-events="none" />
+
+                        <!-- Oznake i natpisi -->
+                        <g id="layer-labels"></g>
+                    </svg>
+                </div>
+
+                <!-- Legenda -->
+                <div class="w-full mt-3 pt-3 border-t border-[#2d3770] flex flex-wrap items-center justify-center gap-4 text-xs text-indigo-100">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-[#475569] border border-white/30"></span>
+                        <span>Neopredeljeno</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-[#3b82f6] border border-white/30"></span>
+                        <span>Kandidat A</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-[#ef4444] border border-white/30"></span>
+                        <span>Kandidat B</span>
+                    </div>
+                    <div id="legend-third-party" class="hidden items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-[#f59e0b] border border-white/30"></span>
+                        <span>Kandidat C</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded border border-indigo-400/60" style="background: repeating-linear-gradient(45deg, #141834, #141834 3px, #2d3770 3px, #2d3770 6px);"></span>
+                        <span class="text-indigo-200 font-semibold">KiM — Okupirano (0)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Desna kolona: Tabela i pretraga okruga (5 kolona) -->
+            <section class="lg:col-span-5 bg-[#141834] rounded-2xl p-4 sm:p-5 border border-[#2d3770] shadow-2xl flex flex-col max-h-[880px]">
+                <div class="flex flex-col gap-2.5 mb-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-white">Pregled po okruzima</h2>
+                            <p class="text-xs text-indigo-300">25 okruga = 538 elektora (270 za pobedu)</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input id="search-district" type="text" placeholder="Pretraži okrug ili sedište..."
+                            class="bg-[#0c0e1b] text-white placeholder-indigo-400 text-xs px-3 py-2 rounded-xl border border-[#2d3770] focus:border-[#6366f1] focus:outline-none flex-1 shadow" />
+                        <select id="sort-district" aria-label="Sortiraj okruge"
+                            class="bg-[#0c0e1b] text-white text-xs px-2.5 py-2 rounded-xl border border-[#2d3770] focus:border-[#6366f1] focus:outline-none cursor-pointer shadow">
+                            <option value="ev-desc">Elektori (najviše)</option>
+                            <option value="ev-asc">Elektori (najmanje)</option>
+                            <option value="name-asc">Naziv (A–Š)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Zaglavlje tabele -->
+                <div class="grid grid-cols-12 text-[11px] font-bold uppercase tracking-wider text-indigo-300 pb-2 px-2.5 border-b border-[#2d3770]">
+                    <div class="col-span-6">Upravni okrug</div>
+                    <div class="col-span-3 text-right">Stanovnika</div>
+                    <div class="col-span-3 text-right">Elektori</div>
+                </div>
+
+                <!-- Lista -->
+                <div id="districts-list" class="flex-1 overflow-y-auto divide-y divide-[#2d3770]/40 mt-1 pr-1">
+                </div>
+            </section>
+
         </div>
+    </main>
 
-        <!-- 51 Majority Marker Line (at 50.5% visual center for 51/100) -->
-        <div class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-10">
-          <div class="w-0.5 h-10 sm:h-11 bg-slate-900 shadow"></div>
-          <span class="text-[10px] font-black bg-slate-900 text-white px-1.5 py-0.2 rounded mt-0.5">51</span>
+    <!-- Tooltip -->
+    <div id="tooltip" class="fixed pointer-events-none z-50 hidden bg-[#0c0e1b]/95 backdrop-blur-md text-white px-3.5 py-2.5 rounded-xl border border-[#6366f1] shadow-2xl text-xs max-w-xs">
+        <div id="tt-name" class="font-extrabold text-sm text-white"></div>
+        <div id="tt-seat" class="text-indigo-300 text-[11px] mb-1.5"></div>
+        <div id="tt-details" class="space-y-0.5 border-t border-[#2d3770] pt-1.5">
+            <div class="flex justify-between gap-4">
+                <span class="text-indigo-200">Stanovništvo (2022):</span>
+                <span id="tt-pop" class="font-bold text-white"></span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-indigo-200">Elektorski glasovi:</span>
+                <span id="tt-ev" class="font-extrabold text-indigo-300"></span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-indigo-200">Trenutni status:</span>
+                <span id="tt-status" class="font-bold"></span>
+            </div>
         </div>
-      </div>
-
+        <div id="tt-occupied-note" class="hidden mt-1.5 pt-1.5 border-t border-[#2d3770] text-amber-300 font-bold tracking-wide uppercase text-[11px]">
+            OKUPIRANO — 0 elektora (izuzeto)
+        </div>
     </div>
-  </section>
 
-  <!-- MAIN WORKSPACE -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-    
-    <!-- LEFT/CENTER: INTERACTIVE MAP CARD (7 cols on desktop) -->
-    <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-col">
-      
-      <!-- Brush / Painting Mode Toolbar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
-        <div class="flex flex-wrap items-center gap-1.5" id="brush-toolbar">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Alat:</span>
-          <button data-brush="cycle" class="brush-btn active px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white shadow-sm transition">
-            🔄 Klik u krug
-          </button>
-          <button data-brush="a_safe" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full swatch-a-safe inline-block"></span> Sigurno A
-          </button>
-          <button data-brush="a_likely" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full swatch-a-likely inline-block"></span> Verovatno A
-          </button>
-          <button data-brush="a_lean" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full swatch-a-lean inline-block"></span> Naginje A
-          </button>
-          <button data-brush="tossup" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full bg-[#d6d0c4] border border-slate-400 inline-block"></span> Neodlučno
-          </button>
-          <button data-brush="b_lean" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full swatch-b-lean inline-block"></span> Naginje B
-          </button>
-          <button data-brush="b_likely" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full swatch-b-likely inline-block"></span> Verovatno B
-          </button>
-          <button data-brush="b_safe" class="brush-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full swatch-b-safe inline-block"></span> Sigurno B
-          </button>
-        </div>
-      </div>
-
-      <!-- Map Display Toggles -->
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-2 text-xs text-slate-600">
-        <div class="flex items-center gap-4">
-          <label class="inline-flex items-center gap-1.5 cursor-pointer select-none font-medium">
-            <input type="checkbox" id="toggle-names" checked class="rounded text-blue-600 focus:ring-blue-500" />
-            <span>Prikaži nazive regiona</span>
-          </label>
-        </div>
-        <span class="text-[11px] text-slate-400 italic">Kliknite na region za promenu statusa</span>
-      </div>
-
-      <!-- SVG MAP CONTAINER -->
-      <div class="relative w-full bg-slate-50 rounded-xl border border-slate-200/80 overflow-hidden flex items-center justify-center p-2 sm:p-4">
-        <svg id="serbia-map" viewBox="0 0 520 680" class="w-full max-w-[490px] h-auto select-none drop-shadow-sm" role="img" aria-label="Izborna mapa Srbije sa 8 regiona">
-          <defs>
-            <!-- Subtle hatch pattern for Kosovo & Metohija -->
-            <pattern id="kim-hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-              <rect width="8" height="8" fill="#f5f5dc" />
-              <line x1="0" y1="0" x2="0" y2="8" stroke="#e2dec0" stroke-width="2" />
-            </pattern>
-          </defs>
-
-          <!-- Background subtle context shapes (neighboring borders feel) -->
-          <g stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 3" fill="none">
-            <path d="M 35,62 L 5,55 M 215,18 L 235,2 M 265,62 L 320,30 M 325,185 L 430,190 M 445,285 L 510,295 M 415,575 L 485,635 M 165,570 L 80,625 M 65,375 L 10,395 M 65,195 L 15,205" />
-          </g>
-
-          <!-- 8 ELECTORAL REGIONS (Faithfully traced from image_5b8c26.png) -->
-          <g id="regions-layer">
-            <!-- 1. BAČKA (14 elektora) -->
-            <path id="reg-backa" data-id="backa" class="region-path"
-              d="M 118,14 L 146,16 L 155,22 L 150,48 L 152,68 L 175,78 L 185,105 L 194,132 L 198,158 L 166,165 L 136,168 L 114,154 L 84,148 L 62,144 L 54,128 L 64,116 L 48,104 L 52,88 L 42,74 L 38,54 L 58,48 L 64,34 L 94,30 L 104,16 Z" />
-
-            <!-- 2. BANAT (8 elektora) -->
-            <path id="reg-banat" data-id="banat" class="region-path"
-              d="M 155,22 L 184,18 L 204,26 L 216,46 L 236,62 L 246,74 L 264,74 L 266,94 L 258,118 L 268,136 L 296,154 L 318,162 L 322,182 L 336,196 L 342,210 L 324,214 L 316,228 L 292,234 L 274,242 L 252,238 L 236,222 L 222,196 L 208,180 L 198,158 L 194,132 L 185,105 L 175,78 L 152,68 L 150,48 Z" />
-
-            <!-- 3. SREM (4 elektora) -->
-            <path id="reg-srem" data-id="srem" class="region-path"
-              d="M 62,144 L 84,148 L 114,154 L 136,168 L 166,165 L 198,158 L 208,180 L 196,196 L 184,218 L 172,232 L 162,226 L 146,214 L 132,212 L 128,194 L 110,188 L 92,192 L 62,198 L 58,188 L 76,178 L 66,164 Z" />
-
-            <!-- 4. BEOGRAD (25 elektora) -->
-            <path id="reg-beograd" data-id="beograd" class="region-path"
-              d="M 208,180 L 222,196 L 236,222 L 252,238 L 262,248 L 254,264 L 262,278 L 252,292 L 238,292 L 224,282 L 214,296 L 196,302 L 192,282 L 194,264 L 176,262 L 166,248 L 172,232 L 184,218 L 196,196 Z" />
-
-            <!-- 5. SEVEROISTOČNA SRBIJA / BRANIČEVO-TIMOK (7 elektora) -->
-            <path id="reg-istok" data-id="istok" class="region-path"
-              d="M 262,248 L 274,242 L 292,234 L 316,228 L 328,232 L 348,244 L 376,246 L 398,256 L 418,252 L 434,234 L 448,236 L 456,248 L 474,254 L 474,266 L 450,270 L 446,288 L 466,302 L 462,324 L 454,344 L 442,342 L 432,326 L 418,332 L 412,354 L 396,360 L 378,348 L 364,332 L 336,324 L 320,310 L 296,306 L 274,312 L 256,302 L 252,292 L 262,278 L 254,264 Z" />
-
-            <!-- 6. ZAPADNA SRBIJA I ŠUMADIJA (18 elektora) -->
-            <path id="reg-zapad" data-id="zapad" class="region-path"
-              d="M 92,192 L 110,188 L 128,194 L 132,212 L 146,214 L 162,226 L 172,232 L 166,248 L 176,262 L 194,264 L 192,282 L 196,302 L 214,296 L 216,324 L 226,348 L 246,366 L 268,382 L 274,402 L 262,424 L 258,448 L 264,468 L 246,474 L 236,488 L 228,504 L 224,524 L 208,524 L 190,512 L 164,496 L 134,476 L 106,454 L 86,432 L 84,414 L 108,412 L 112,394 L 94,376 L 94,352 L 104,334 L 96,314 L 74,302 L 68,278 L 72,254 L 88,238 L 90,214 Z" />
-
-            <!-- 7. CENTRALNA SRBIJA / POMORAVLJE-RASINA-NIŠAVA (16 elektora) -->
-            <path id="reg-centar" data-id="centar" class="region-path"
-              d="M 214,296 L 224,282 L 238,292 L 252,292 L 256,302 L 274,312 L 296,306 L 320,310 L 336,324 L 364,332 L 378,348 L 364,372 L 364,396 L 378,414 L 404,424 L 428,432 L 428,448 L 412,454 L 388,452 L 376,466 L 368,484 L 348,482 L 334,496 L 324,518 L 312,516 L 298,498 L 284,488 L 272,472 L 264,468 L 258,448 L 262,424 L 274,402 L 268,382 L 246,366 L 226,348 L 216,324 Z" />
-
-            <!-- 8. JUGOISTOČNA SRBIJA (8 elektora) -->
-            <path id="reg-jugoistok" data-id="jugoistok" class="region-path"
-              d="M 378,348 L 396,360 L 412,354 L 418,332 L 432,326 L 442,342 L 438,366 L 436,392 L 448,416 L 466,436 L 488,456 L 502,472 L 494,492 L 476,514 L 456,530 L 454,554 L 442,576 L 416,576 L 390,574 L 372,588 L 352,588 L 342,576 L 362,554 L 366,536 L 358,522 L 336,522 L 324,518 L 334,496 L 348,482 L 368,484 L 376,466 L 388,452 L 412,454 L 428,448 L 428,432 L 404,424 L 378,414 L 364,396 L 364,372 Z" />
-          </g>
-
-          <!-- KOSOVO AND METOHIJA (Special Non-Electoral Territory) -->
-          <g id="kosovo-layer">
-            <path id="reg-kosovo" class="kosovo-path" fill="url(#kim-hatch)"
-              d="M 246,474 L 264,468 L 272,472 L 284,488 L 298,498 L 312,516 L 324,518 L 336,522 L 358,522 L 366,536 L 362,554 L 342,576 L 334,592 L 312,598 L 298,614 L 284,606 L 268,618 L 258,644 L 246,664 L 234,660 L 238,634 L 228,614 L 208,604 L 188,592 L 172,576 L 166,556 L 186,548 L 204,544 L 208,524 L 224,524 L 228,504 L 236,488 Z" />
-            <text x="266" y="556" class="kosovo-label">Kosovo i Metohija</text>
-            <text x="266" y="571" class="kosovo-label" style="font-size: 9px; font-weight: 600;">(okupirano, bez elektora)</text>
-          </g>
-
-          <!-- LABELS LAYER (Electoral counts & region names) -->
-          <g id="labels-layer">
-            <!-- Bačka -->
-            <text x="122" y="92" class="region-label-electors">14</text>
-            <text x="122" y="113" class="region-label-name">BAČKA</text>
-
-            <!-- Banat -->
-            <text x="234" y="138" class="region-label-electors">8</text>
-            <text x="234" y="159" class="region-label-name">BANAT</text>
-
-            <!-- Srem -->
-            <text x="142" y="182" class="region-label-electors" style="font-size: 18px;">4</text>
-            <text x="142" y="198" class="region-label-name" style="font-size: 9px;">SREM</text>
-
-            <!-- Beograd -->
-            <text x="218" y="246" class="region-label-electors">25</text>
-            <text x="218" y="266" class="region-label-name" style="font-size: 9.5px;">BEOGRAD</text>
-
-            <!-- Severoistočna Srbija -->
-            <text x="348" y="282" class="region-label-electors">7</text>
-            <text x="348" y="302" class="region-label-name" style="font-size: 9px;">PODUNAVLJE</text>
-
-            <!-- Zapadna Srbija i Šumadija -->
-            <text x="164" y="395" class="region-label-electors">18</text>
-            <text x="164" y="416" class="region-label-name">ZAPADNA SRBIJA</text>
-
-            <!-- Centralna Srbija -->
-            <text x="304" y="408" class="region-label-electors">16</text>
-            <text x="304" y="429" class="region-label-name">CENTRALNA</text>
-
-            <!-- Jugoistočna Srbija -->
-            <text x="432" y="492" class="region-label-electors">8</text>
-            <text x="432" y="513" class="region-label-name">JUGOISTOK</text>
-          </g>
-        </svg>
-
-        <!-- Floating Tooltip -->
-        <div id="map-tooltip" class="fixed hidden bg-slate-900/95 text-white px-3 py-2 rounded-xl shadow-xl border border-slate-700 text-xs backdrop-blur-sm">
-          <div class="font-extrabold text-sm" id="tt-name">Region</div>
-          <div class="text-slate-300 mt-0.5">Elektori: <span id="tt-electors" class="font-bold text-amber-400">0</span></div>
-          <div class="mt-1 flex items-center gap-1.5">
-            <span id="tt-dot" class="w-2.5 h-2.5 rounded-full inline-block"></span>
-            <span id="tt-status" class="font-semibold">Neodlučno</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Map Actions -->
-      <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex flex-wrap items-center gap-2">
-          <button id="btn-reset" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-300 transition">
-            ↺ Resetuj mapu
-          </button>
-          <button id="btn-simulate" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition">
-            🎲 Simuliraj izbore
-          </button>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <button id="btn-all-a" class="px-2.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold border border-blue-200 transition">
-            Sve A
-          </button>
-          <button id="btn-all-b" class="px-2.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-800 text-xs font-bold border border-red-200 transition">
-            Sve B
-          </button>
-        </div>
-      </div>
+    <!-- Toast obaveštenje -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-[#4f46e5] text-white px-4 py-3 rounded-xl shadow-2xl border border-indigo-400 text-sm font-semibold transition-opacity duration-300">
     </div>
 
-    <!-- RIGHT: REGIONAL BREAKDOWN TABLE & ANALYSIS (5 cols on desktop) -->
-    <div class="lg:col-span-5 flex flex-col gap-5">
-      
-      <!-- Regions List Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-4 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-          <div>
-            <h2 class="font-extrabold text-sm text-slate-900">Izborne jedinice (8 regiona)</h2>
-            <p class="text-[11px] text-slate-500">Kliknite na status u tabeli ili direktno na mapu</p>
-          </div>
-          <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-slate-200/80 text-slate-700">Σ = 100</span>
-        </div>
+    <script>
+        /**
+         * VISOKOPRECIZNA TOPOLOŠKA MREŽA SRBIJE (viewBox="0 0 1000 1453")
+         * Optimizovana po uzoru na milimetarski preciznu kartu upravnih okruga.
+         */
+        const ARCS = {
+            b_hu_sb: [
+                [148, 62], [160, 56], [174, 58], [186, 44], [202, 36], [218, 38],
+                [232, 48], [248, 46], [264, 38], [282, 36], [298, 44], [316, 42],
+                [332, 52], [346, 66]
+            ],
+            b_ro_snb: [
+                [346, 66], [364, 72], [384, 78], [402, 92], [418, 106],
+                [428, 124], [442, 138], [456, 152], [470, 162], [456, 178],
+                [458, 194], [472, 208]
+            ],
+            b_ro_srb: [
+                [472, 208], [468, 224], [478, 240], [492, 256], [504, 274], [520, 288]
+            ],
+            b_ro_jbn: [
+                [520, 288], [538, 304], [556, 312], [574, 326], [596, 336],
+                [616, 352], [634, 376], [622, 392], [612, 404], [626, 418],
+                [634, 430], [614, 444], [594, 454], [596, 476]
+            ],
+            b_ro_br: [
+                [596, 476], [622, 482], [646, 494], [662, 514], [688, 518],
+                [714, 522], [736, 536]
+            ],
+            b_ro_bg_bo: [
+                [736, 536], [752, 548], [768, 554], [782, 536], [794, 514],
+                [812, 496], [834, 492], [852, 504], [866, 518], [886, 522],
+                [898, 534], [886, 546], [864, 542], [846, 554], [836, 572],
+                [844, 594], [862, 610], [882, 622], [894, 638], [884, 656],
+                [870, 674], [872, 696], [880, 718], [884, 742]
+            ],
+            b_bg_za: [
+                [884, 742], [868, 756], [854, 774], [848, 796], [844, 822],
+                [840, 848], [846, 872]
+            ],
+            b_bg_pi: [
+                [846, 872], [864, 892], [886, 914], [912, 932], [936, 952],
+                [952, 976], [954, 1002], [940, 1024], [922, 1044], [904, 1064],
+                [886, 1084], [866, 1076], [850, 1082]
+            ],
+            b_bg_ja: [
+                [850, 1082], [838, 1104], [824, 1126], [818, 1148]
+            ],
+            b_bg_mk_pc: [
+                [818, 1148], [824, 1176], [836, 1202], [848, 1228], [852, 1256],
+                [842, 1282], [836, 1308], [836, 1334], [812, 1334], [788, 1326],
+                [764, 1314], [738, 1314], [712, 1324], [686, 1326], [662, 1316],
+                [644, 1314]
+            ],
+            b_mk_kp: [
+                [644, 1314], [622, 1318], [598, 1304], [576, 1316], [556, 1316]
+            ],
+            b_mk_al_pr: [
+                [556, 1316], [534, 1314], [512, 1328], [488, 1340], [466, 1348],
+                [460, 1372], [444, 1392], [428, 1398], [418, 1394], [416, 1368],
+                [426, 1342], [422, 1318], [410, 1296], [414, 1272], [396, 1252],
+                [382, 1232], [372, 1214]
+            ],
+            b_al_cg_pe: [
+                [372, 1214], [348, 1196], [322, 1182], [302, 1158], [288, 1136],
+                [286, 1112], [312, 1098], [336, 1088]
+            ],
+            b_cg_ra: [
+                [336, 1088], [362, 1086], [368, 1066], [344, 1056], [318, 1044],
+                [302, 1022], [294, 998], [272, 984], [250, 968]
+            ],
+            b_cg_ba_zl: [
+                [250, 968], [228, 948], [204, 926], [182, 902], [162, 876],
+                [142, 864], [126, 866], [134, 844], [156, 834], [182, 826],
+                [194, 812], [174, 800], [154, 782], [144, 758], [136, 736],
+                [116, 718], [112, 694], [102, 672]
+            ],
+            b_ba_ma: [
+                [102, 672], [104, 646], [96, 622], [96, 594], [104, 568],
+                [122, 546], [136, 522], [146, 496], [152, 472], [132, 452],
+                [106, 442]
+            ],
+            b_hr_sr: [
+                [106, 442], [92, 424], [90, 402], [86, 378], [94, 360],
+                [118, 352], [144, 356], [166, 344]
+            ],
+            b_hr_jb: [
+                [166, 344], [142, 336], [114, 326], [92, 310], [74, 290],
+                [62, 268]
+            ],
+            b_hr_zb: [
+                [62, 268], [72, 248], [56, 228], [64, 206], [46, 186],
+                [48, 162], [36, 142], [36, 128], [58, 118], [80, 114],
+                [88, 94], [112, 94], [132, 82], [148, 62]
+            ],
+            sb_zb: [
+                [148, 62], [152, 88], [162, 114], [182, 134], [202, 152], [208, 174]
+            ],
+            sb_jb: [
+                [208, 174], [234, 184], [262, 172], [292, 172], [318, 178], [336, 172]
+            ],
+            sb_snb: [
+                [346, 66], [342, 96], [336, 124], [338, 152], [336, 172]
+            ],
+            zb_jb: [
+                [62, 268], [88, 266], [116, 268], [142, 256], [164, 236],
+                [188, 224], [202, 198], [208, 174]
+            ],
+            jb_snb: [
+                [336, 172], [316, 186], [322, 206]
+            ],
+            snb_srb: [
+                [322, 206], [346, 204], [372, 218], [402, 218], [430, 206],
+                [452, 196], [472, 208]
+            ],
+            jb_srb: [
+                [322, 206], [316, 234], [328, 262], [342, 292], [348, 322], [352, 348]
+            ],
+            jb_sr: [
+                [166, 344], [194, 358], [228, 364], [264, 360], [298, 354],
+                [328, 360], [342, 362]
+            ],
+            jb_bg: [
+                [342, 362], [352, 348]
+            ],
+            srb_jbn: [
+                [352, 348], [368, 368], [396, 356], [422, 334], [454, 332],
+                [486, 308], [520, 288]
+            ],
+            jbn_bg: [
+                [352, 348], [356, 378], [378, 384], [402, 402], [422, 426],
+                [442, 452], [464, 466]
+            ],
+            jbn_pd: [
+                [464, 466], [492, 482], [516, 492]
+            ],
+            jbn_br: [
+                [516, 492], [546, 484], [574, 480], [596, 476]
+            ],
+            sr_bg: [
+                [342, 362], [358, 388], [356, 418], [346, 444], [322, 462]
+            ],
+            sr_ma: [
+                [106, 442], [134, 454], [162, 458], [192, 454], [224, 468],
+                [256, 472], [288, 464], [322, 462]
+            ],
+            ma_bg: [
+                [322, 462], [312, 492]
+            ],
+            ma_ko: [
+                [312, 492], [294, 516], [278, 544], [268, 574], [242, 586],
+                [212, 578], [186, 588], [164, 612]
+            ],
+            ma_zl: [
+                [102, 672], [124, 654], [146, 632], [164, 612]
+            ],
+            ko_bg: [
+                [312, 492], [320, 520], [344, 534], [364, 552]
+            ],
+            ko_su: [
+                [364, 552], [376, 582], [384, 612], [372, 638]
+            ],
+            ko_mo: [
+                [372, 638], [346, 658], [316, 666], [284, 658]
+            ],
+            ko_zl: [
+                [164, 612], [192, 632], [218, 652], [248, 666], [284, 658]
+            ],
+            bg_pd: [
+                [464, 466], [456, 498], [442, 532]
+            ],
+            bg_su: [
+                [364, 552], [392, 564], [418, 552], [442, 532]
+            ],
+            pd_br: [
+                [516, 492], [528, 528], [536, 566], [532, 604]
+            ],
+            pd_pm: [
+                [532, 604], [512, 616]
+            ],
+            pd_su: [
+                [442, 532], [444, 556], [458, 584], [484, 602], [512, 616]
+            ],
+            br_bo: [
+                [736, 536], [722, 568], [716, 604], [696, 638], [668, 666]
+            ],
+            br_pm: [
+                [532, 604], [552, 622], [578, 636], [608, 644], [636, 664], [668, 666]
+            ],
+            bo_za: [
+                [668, 666], [698, 668], [732, 684], [758, 690], [784, 674],
+                [806, 654], [834, 664], [862, 668], [884, 656]
+            ],
+            su_pm: [
+                [512, 616], [528, 648], [534, 684], [524, 722], [500, 754]
+            ],
+            su_rs: [
+                [500, 754], [468, 766]
+            ],
+            su_ra: [
+                [468, 766], [434, 754]
+            ],
+            su_mo: [
+                [372, 638], [372, 668], [388, 698], [412, 728], [434, 754]
+            ],
+            pm_za: [
+                [668, 666], [658, 698], [666, 732], [652, 764]
+            ],
+            pm_ni: [
+                [652, 764], [622, 784], [586, 794]
+            ],
+            pm_rs: [
+                [500, 754], [526, 764], [554, 782], [586, 794]
+            ],
+            za_ni: [
+                [652, 764], [656, 790], [684, 812], [712, 834], [744, 844], [776, 858]
+            ],
+            za_pi: [
+                [776, 858], [812, 864], [846, 872]
+            ],
+            zl_mo: [
+                [284, 658], [298, 688], [308, 722], [298, 758], [312, 794],
+                [328, 828], [336, 864]
+            ],
+            zl_ra: [
+                [336, 864], [318, 896], [296, 924], [268, 944], [250, 968]
+            ],
+            mo_ra: [
+                [434, 754], [422, 772], [412, 804], [392, 834], [364, 848], [336, 864]
+            ],
+            ra_rs: [
+                [468, 766], [486, 798], [496, 834], [488, 872], [482, 912]
+            ],
+            ra_to: [
+                [482, 912], [474, 952]
+            ],
+            rs_ni: [
+                [586, 794], [612, 824], [622, 862], [612, 898], [592, 926]
+            ],
+            rs_to: [
+                [482, 912], [520, 926], [556, 936], [592, 926]
+            ],
+            ni_pi: [
+                [776, 858], [786, 894], [774, 926], [748, 952]
+            ],
+            ni_ja: [
+                [748, 952], [714, 964], [678, 960], [644, 946]
+            ],
+            ni_to: [
+                [592, 926], [618, 932], [644, 946]
+            ],
+            pi_ja: [
+                [748, 952], [758, 984], [768, 1016], [792, 1044], [822, 1064], [850, 1082]
+            ],
+            to_ja: [
+                [644, 946], [648, 984], [636, 1020], [612, 1048]
+            ],
+            ja_pc: [
+                [642, 1112], [672, 1134], [708, 1148], [746, 1158], [784, 1152], [818, 1148]
+            ],
+            ra_km: [
+                [336, 1088], [364, 1086], [372, 1062], [396, 1034], [426, 1016],
+                [456, 988], [474, 952]
+            ],
+            to_km: [
+                [474, 952], [486, 996], [508, 1028]
+            ],
+            to_ko: [
+                [508, 1028], [542, 1048], [578, 1056], [612, 1048]
+            ],
+            ja_ko: [
+                [612, 1048], [622, 1082]
+            ],
+            ja_kp: [
+                [622, 1082], [642, 1112]
+            ],
+            pc_kp: [
+                [642, 1112], [642, 1148], [658, 1188], [668, 1232], [664, 1274], [644, 1314]
+            ],
+            km_pe: [
+                [336, 1088], [366, 1094], [392, 1122], [406, 1144]
+            ],
+            km_pr: [
+                [406, 1144], [444, 1148], [484, 1144]
+            ],
+            km_ko: [
+                [508, 1028], [522, 1072], [512, 1114], [484, 1144]
+            ],
+            pe_pr: [
+                [406, 1144], [412, 1182], [398, 1214], [372, 1214]
+            ],
+            pr_ko: [
+                [484, 1144], [476, 1206], [486, 1252], [514, 1280], [546, 1284]
+            ],
+            pr_kp: [
+                [546, 1284], [556, 1316]
+            ],
+            ko_kp: [
+                [622, 1082], [614, 1124], [604, 1168], [592, 1212], [574, 1256], [546, 1284]
+            ]
+        };
 
-        <div class="divide-y divide-slate-100" id="regions-table-body">
-          <!-- Dynamically populated rows -->
-        </div>
-      </div>
-
-      <!-- Legend & Rules Info Card -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-3">Legenda kategorija</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50">
-            <span class="w-3.5 h-3.5 rounded swatch-a-safe flex-shrink-0"></span>
-            <span class="font-semibold text-slate-700">Sigurno A</span>
-          </div>
-          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50">
-            <span class="w-3.5 h-3.5 rounded swatch-a-likely flex-shrink-0"></span>
-            <span class="font-semibold text-slate-700">Verovatno A</span>
-          </div>
-          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50">
-            <span class="w-3.5 h-3.5 rounded swatch-a-lean flex-shrink-0"></span>
-            <span class="font-semibold text-slate-700">Naginje A</span>
-          </div>
-          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50">
-            <span class="w-3.5 h-3.5 rounded swatch-b-safe flex-shrink-0"></span>
-            <span class="font-semibold text-slate-700">Sigurno B</span>
-          </div>
-          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50">
-            <span class="w-3.5 h-3.5 rounded swatch-b-likely flex-shrink-0"></span>
-            <span class="font-semibold text-slate-700">Verovatno B</span>
-          </div>
-          <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50">
-            <span class="w-3.5 h-3.5 rounded swatch-b-lean flex-shrink-0"></span>
-            <span class="font-semibold text-slate-700">Naginje B</span>
-          </div>
-        </div>
-        <p class="text-[11px] text-slate-500 mt-3 leading-relaxed">
-          Sistem funkcioniše po principu <strong>„pobednik nosi sve“</strong> unutar svake od 8 izbornih jedinica. Kandidat koji prvi osvoji najmanje <strong>51 od 100 elektora</strong> pobeđuje na izborima.
-        </p>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl border border-slate-700 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-    Rezultat je kopiran u privremenu memoriju!
-  </div>
-
-  <script>
-    /**
-     * Izborna konfiguracija Srbije — 8 regiona, ukupno 100 elektora
-     */
-    const REGIONS = [
-      { id: 'backa',     name: 'Bačka',                   sub: 'Severozapad',                 electors: 14 },
-      { id: 'banat',     name: 'Banat',                   sub: 'Severoistok',                 electors: 8  },
-      { id: 'srem',      name: 'Srem',                    sub: 'Zapad Vojvodine',             electors: 4  },
-      { id: 'beograd',   name: 'Beograd',                 sub: 'Glavni grad',       electors: 25 },
-      { id: 'istok',     name: 'Podunavlje i Braničevo',    sub: 'Istok Srbije',           electors: 7  },
-      { id: 'zapad',     name: 'Zapadna Srbija', sub: 'Zapadni i jugozapadni deo', electors: 18 },
-      { id: 'centar',    name: 'Šumadija i Pomoravlje',        sub: 'Centralni deo Srbije',  electors: 16 },
-      { id: 'jugoistok', name: 'Jugoistočna Srbija',      sub: 'Jugoistok',                   electors: 8  }
-    ];
-
-    // Redosled ciklusa pri kliku u krug
-    const CYCLE_ORDER = ['tossup', 'a_safe', 'a_lean', 'b_safe', 'b_lean'];
-
-    // Trenutno stanje aplikacije
-    const state = {
-      nameA: 'Kandidat A (Plavi)',
-      nameB: 'Kandidat B (Crveni)',
-      colorA: '#1d4ed8',
-      colorB: '#dc2626',
-      brush: 'cycle',
-      regions: {
-        backa: 'tossup',
-        banat: 'tossup',
-        srem: 'tossup',
-        beograd: 'tossup',
-        istok: 'tossup',
-        zapad: 'tossup',
-        centar: 'tossup',
-        jugoistok: 'tossup'
-      }
-    };
-
-    /**
-     * Pomoćna funkcija za nijansiranje heksadecimalne boje (svetlije nijanse za Verovatno/Naginje)
-     */
-    function lightenHex(hex, amount) {
-      const num = parseInt(hex.replace('#', ''), 16);
-      let r = (num >> 16) & 255;
-      let g = (num >> 8) & 255;
-      let b = num & 255;
-      r = Math.round(r + (255 - r) * amount);
-      g = Math.round(g + (255 - g) * amount);
-      b = Math.round(b + (255 - b) * amount);
-      return `rgb(${r}, ${g}, ${b})`;
-    }
-
-    function getPalette() {
-      return {
-        tossup:   { fill: '#e5e0d8', text: 'Neodlučno',   side: 'none', tier: 'tossup' },
-        a_safe:   { fill: state.colorA, text: `Sigurno (${state.nameA})`, side: 'a', tier: 'safe' },
-        a_likely: { fill: lightenHex(state.colorA, 0.28), text: `Verovatno (${state.nameA})`, side: 'a', tier: 'likely' },
-        a_lean:   { fill: lightenHex(state.colorA, 0.56), text: `Naginje (${state.nameA})`, side: 'a', tier: 'lean' },
-        b_safe:   { fill: state.colorB, text: `Sigurno (${state.nameB})`, side: 'b', tier: 'safe' },
-        b_likely: { fill: lightenHex(state.colorB, 0.28), text: `Verovatno (${state.nameB})`, side: 'b', tier: 'likely' },
-        b_lean:   { fill: lightenHex(state.colorB, 0.56), text: `Naginje (${state.nameB})`, side: 'b', tier: 'lean' }
-      };
-    }
-
-    /**
-     * Ažurira boje swatcheva i celokupan UI
-     */
-    function renderAll() {
-      const palette = getPalette();
-
-      // Update dynamic color swatches
-      document.querySelectorAll('.swatch-a-safe').forEach(el => el.style.backgroundColor = palette.a_safe.fill);
-      document.querySelectorAll('.swatch-a-likely').forEach(el => el.style.backgroundColor = palette.a_likely.fill);
-      document.querySelectorAll('.swatch-a-lean').forEach(el => el.style.backgroundColor = palette.a_lean.fill);
-      document.querySelectorAll('.swatch-b-safe').forEach(el => el.style.backgroundColor = palette.b_safe.fill);
-      document.querySelectorAll('.swatch-b-likely').forEach(el => el.style.backgroundColor = palette.b_likely.fill);
-      document.querySelectorAll('.swatch-b-lean').forEach(el => el.style.backgroundColor = palette.b_lean.fill);
-
-      document.getElementById('score-a').style.color = state.colorA;
-      document.getElementById('score-b').style.color = state.colorB;
-
-      // Update SVG paths
-      REGIONS.forEach(reg => {
-        const status = state.regions[reg.id];
-        const pathEl = document.getElementById(`reg-${reg.id}`);
-        if (pathEl) {
-          pathEl.style.fill = palette[status].fill;
+        function buildPolygonPath(arcSpecs) {
+            const pts = [];
+            arcSpecs.forEach(spec => {
+                const reverse = spec.startsWith('-');
+                const key = reverse ? spec.slice(1) : spec;
+                const raw = ARCS[key];
+                if (!raw) return;
+                const seq = reverse ? [...raw].reverse() : raw;
+                seq.forEach((pt, idx) => {
+                    if (pts.length > 0 && idx === 0) {
+                        const last = pts[pts.length - 1];
+                        if (last[0] === pt[0] && last[1] === pt[1]) return;
+                    }
+                    pts.push(pt);
+                });
+            });
+            if (pts.length === 0) return '';
+            return 'M ' + pts.map(p => `${p[0]},${p[1]}`).join(' L ') + ' Z';
         }
-      });
 
-      // Calculate Electoral Scores
-      const totals = {
-        a_safe: 0, a_likely: 0, a_lean: 0,
-        tossup: 0,
-        b_lean: 0, b_likely: 0, b_safe: 0
-      };
-
-      REGIONS.forEach(reg => {
-        const st = state.regions[reg.id];
-        totals[st] += reg.electors;
-      });
-
-      const totalA = totals.a_safe + totals.a_likely + totals.a_lean;
-      const totalB = totals.b_safe + totals.b_likely + totals.b_lean;
-      const totalTossup = totals.tossup;
-
-      // Update Score Numbers
-      document.getElementById('score-a').textContent = totalA;
-      document.getElementById('score-b').textContent = totalB;
-      document.getElementById('score-tossup').textContent = totalTossup;
-
-      document.getElementById('breakdown-a').textContent =
-        `Sigurno: ${totals.a_safe} | Verov: ${totals.a_likely} | Naginje: ${totals.a_lean}`;
-      document.getElementById('breakdown-b').textContent =
-        `Naginje: ${totals.b_lean} | Verov: ${totals.b_likely} | Sigurno: ${totals.b_safe}`;
-
-      // Update Bar Segments
-      const segMap = [
-        ['bar-a-safe', totals.a_safe, palette.a_safe.fill],
-        ['bar-a-likely', totals.a_likely, palette.a_likely.fill],
-        ['bar-a-lean', totals.a_lean, palette.a_lean.fill],
-        ['bar-tossup', totalTossup, '#e5e0d8'],
-        ['bar-b-lean', totals.b_lean, palette.b_lean.fill],
-        ['bar-b-likely', totals.b_likely, palette.b_likely.fill],
-        ['bar-b-safe', totals.b_safe, palette.b_safe.fill]
-      ];
-
-      segMap.forEach(([id, val, color]) => {
-        const el = document.getElementById(id);
-        el.style.width = `${val}%`;
-        el.style.backgroundColor = color;
-        el.textContent = val >= 6 ? val : '';
-      });
-
-      // Winner Banner
-      const banner = document.getElementById('winner-banner');
-      if (totalA >= 51) {
-        banner.style.backgroundColor = state.colorA;
-        banner.style.color = '#ffffff';
-        banner.style.borderColor = state.colorA;
-        banner.innerHTML = `<span>🏆 POBEDA: ${escapeHtml(state.nameA)} (${totalA})</span>`;
-      } else if (totalB >= 51) {
-        banner.style.backgroundColor = state.colorB;
-        banner.style.color = '#ffffff';
-        banner.style.borderColor = state.colorB;
-        banner.innerHTML = `<span>🏆 POBEDA: ${escapeHtml(state.nameB)} (${totalB})</span>`;
-      } else if (totalA === 50 && totalB === 50) {
-        banner.style.backgroundColor = '#f59e0b';
-        banner.style.color = '#0f172a';
-        banner.style.borderColor = '#d97706';
-        banner.innerHTML = `<span>⚖️ NEREŠENO (50 — 50)</span>`;
-      } else {
-        banner.style.backgroundColor = '#f1f5f9';
-        banner.style.color = '#334155';
-        banner.style.borderColor = '#cbd5e1';
-        banner.innerHTML = `<span>51 DO POBEDE</span>`;
-      }
-
-      // Render Right-side Table Rows
-      renderTable(palette);
-
-      // Save to localStorage
-      try {
-        localStorage.setItem('sr_270towin_state', JSON.stringify(state));
-      } catch (e) {}
-    }
-
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    function renderTable(palette) {
-      const container = document.getElementById('regions-table-body');
-      container.innerHTML = '';
-
-      REGIONS.forEach(reg => {
-        const status = state.regions[reg.id];
-        const info = palette[status];
-
-        const row = document.createElement('div');
-        row.className = 'px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-slate-50 transition';
-
-        row.innerHTML = `
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <span class="inline-flex items-center justify-center w-7 h-6 rounded-md bg-slate-900 text-white text-xs font-black flex-shrink-0">
-                ${reg.electors}
-              </span>
-              <span class="font-bold text-xs sm:text-sm text-slate-800 truncate">${reg.name}</span>
-            </div>
-            <div class="text-[11px] text-slate-400 pl-9 truncate">${reg.sub}</div>
-          </div>
-
-          <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button data-quick-a="${reg.id}" title="Dodeli Opciji A" class="w-6 h-6 rounded-md border border-slate-300 flex items-center justify-center text-[10px] font-black text-white shadow-xs hover:scale-105 transition" style="background-color: ${state.colorA}">A</button>
-            <button data-quick-cycle="${reg.id}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border border-slate-300 min-w-[96px] text-center shadow-2xs transition hover:brightness-95"
-              style="background-color: ${info.fill}; color: ${status === 'a_safe' || status === 'a_likely' || status === 'b_safe' || status === 'b_likely' ? '#ffffff' : '#1e293b'}">
-              ${shortStatusLabel(status)}
-            </button>
-            <button data-quick-b="${reg.id}" title="Dodeli Opciji B" class="w-6 h-6 rounded-md border border-slate-300 flex items-center justify-center text-[10px] font-black text-white shadow-xs hover:scale-105 transition" style="background-color: ${state.colorB}">B</button>
-          </div>
-        `;
-
-        container.appendChild(row);
-      });
-
-      // Attach table button listeners
-      container.querySelectorAll('[data-quick-a]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.getAttribute('data-quick-a');
-          state.regions[id] = state.regions[id] === 'a_safe' ? 'a_lean' : 'a_safe';
-          renderAll();
-        });
-      });
-
-      container.querySelectorAll('[data-quick-b]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.getAttribute('data-quick-b');
-          state.regions[id] = state.regions[id] === 'b_safe' ? 'b_lean' : 'b_safe';
-          renderAll();
-        });
-      });
-
-      container.querySelectorAll('[data-quick-cycle]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.getAttribute('data-quick-cycle');
-          applyRegionClick(id);
-        });
-      });
-    }
-
-    function shortStatusLabel(status) {
-      switch (status) {
-        case 'a_safe': return 'Sigurno A';
-        case 'a_likely': return 'Verovatno A';
-        case 'a_lean': return 'Naginje A';
-        case 'b_safe': return 'Sigurno B';
-        case 'b_likely': return 'Verovatno B';
-        case 'b_lean': return 'Naginje B';
-        default: return 'Neodlučno';
-      }
-    }
-
-    /**
-     * Primenjuje izabranu četkicu ili ciklični klik na region
-     */
-    function applyRegionClick(regionId) {
-      if (state.brush === 'cycle') {
-        const current = state.regions[regionId];
-        const idx = CYCLE_ORDER.indexOf(current);
-        const next = CYCLE_ORDER[(idx + 1) % CYCLE_ORDER.length];
-        state.regions[regionId] = next;
-      } else {
-        // Ako je već obojeno istom četkicom, vrati na neodlučno radi lakšeg brisanja
-        state.regions[regionId] = (state.regions[regionId] === state.brush) ? 'tossup' : state.brush;
-      }
-      renderAll();
-    }
-
-    /**
-     * Predefinisani scenariji
-     */
-    function applyPreset(presetKey) {
-      if (presetKey === 'empty') {
-        REGIONS.forEach(r => state.regions[r.id] = 'tossup');
-      } else if (presetKey === 'baseline') {
-        state.regions = {
-          backa: 'a_lean',
-          banat: 'b_lean',
-          srem: 'a_likely',
-          beograd: 'a_safe',
-          istok: 'b_likely',
-          zapad: 'b_safe',
-          centar: 'tossup',
-          jugoistok: 'b_safe'
-        };
-      } else if (presetKey === 'north_south') {
-        state.regions = {
-          backa: 'a_safe',
-          banat: 'a_safe',
-          srem: 'a_safe',
-          beograd: 'a_safe',
-          istok: 'b_safe',
-          zapad: 'b_safe',
-          centar: 'b_safe',
-          jugoistok: 'b_safe'
-        };
-      } else if (presetKey === 'belgrade_decides') {
-        state.regions = {
-          backa: 'a_likely',
-          banat: 'a_lean',
-          srem: 'a_likely',
-          beograd: 'tossup',
-          istok: 'b_likely',
-          zapad: 'b_safe',
-          centar: 'b_safe',
-          jugoistok: 'b_safe'
-        };
-      } else if (presetKey === 'blue_wave') {
-        state.regions = {
-          backa: 'a_safe',
-          banat: 'a_safe',
-          srem: 'a_safe',
-          beograd: 'a_safe',
-          istok: 'a_lean',
-          zapad: 'b_lean',
-          centar: 'a_likely',
-          jugoistok: 'b_likely'
-        };
-      } else if (presetKey === 'red_wave') {
-        state.regions = {
-          backa: 'b_lean',
-          banat: 'b_likely',
-          srem: 'b_safe',
-          beograd: 'a_lean',
-          istok: 'b_safe',
-          zapad: 'b_safe',
-          centar: 'b_safe',
-          jugoistok: 'b_safe'
-        };
-      }
-      renderAll();
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.remove('translate-y-20', 'opacity-0');
-      setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 2600);
-    }
-
-    /**
-     * Inicijalizacija događaja
-     */
-    window.addEventListener('DOMContentLoaded', () => {
-      // Učitaj sačuvano stanje ako postoji
-      try {
-        const saved = localStorage.getItem('sr_270towin_state');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && parsed.regions) {
-            Object.assign(state, parsed);
-            document.getElementById('name-a').value = state.nameA;
-            document.getElementById('name-b').value = state.nameB;
-            document.getElementById('color-a').value = state.colorA;
-            document.getElementById('color-b').value = state.colorB;
-          }
+        function buildPolylinePath(arcSpecs) {
+            const pts = [];
+            arcSpecs.forEach(spec => {
+                const reverse = spec.startsWith('-');
+                const key = reverse ? spec.slice(1) : spec;
+                const raw = ARCS[key];
+                if (!raw) return;
+                const seq = reverse ? [...raw].reverse() : raw;
+                seq.forEach((pt, idx) => {
+                    if (pts.length > 0 && idx === 0) {
+                        const last = pts[pts.length - 1];
+                        if (last[0] === pt[0] && last[1] === pt[1]) return;
+                    }
+                    pts.push(pt);
+                });
+            });
+            if (pts.length === 0) return '';
+            return 'M ' + pts.map(p => `${p[0]},${p[1]}`).join(' L ');
         }
-      } catch (e) {}
 
-      // Klik i hover na SVG regione
-      const tooltip = document.getElementById('map-tooltip');
-      REGIONS.forEach(reg => {
-        const el = document.getElementById(`reg-${reg.id}`);
-        if (!el) return;
+        const DISTRICTS_DATA = [
+            { id: 'severnobacki', code: 'SB', name: 'Severno-bački okrug', seat: 'Subotica', population: 160163, ev: 13, labelPos: [256, 110], arcs: ['b_hu_sb', 'sb_snb', '-sb_jb', '-sb_zb'] },
+            { id: 'zapadnobacki', code: 'ZB', name: 'Zapadno-bački okrug', seat: 'Sombor', population: 154491, ev: 13, labelPos: [128, 184], arcs: ['sb_zb', '-zb_jb', 'b_hr_zb'] },
+            { id: 'severnobanatski', code: 'SNB', name: 'Severno-banatski okrug', seat: 'Kikinda', population: 117896, ev: 10, labelPos: [396, 148], arcs: ['b_ro_snb', '-snb_srb', '-jb_snb', '-sb_snb'] },
+            { id: 'juznobacki', code: 'JB', name: 'Južno-bački okrug', seat: 'Novi Sad', population: 607178, ev: 49, labelPos: [238, 268], arcs: ['zb_jb', 'sb_jb', 'jb_snb', 'jb_srb', '-jb_bg', '-jb_sr', 'b_hr_jb'] },
+            { id: 'srednjobanatski', code: 'SRB', name: 'Srednjo-banatski okrug', seat: 'Zrenjanin', population: 157711, ev: 13, labelPos: [422, 276], arcs: ['snb_srb', 'b_ro_srb', '-srb_jbn', '-jb_srb'] },
+            { id: 'sremski', code: 'SR', name: 'Sremski okrug', seat: 'Sremska Mitrovica', population: 282547, ev: 23, labelPos: [232, 412], arcs: ['jb_sr', 'sr_bg', '-sr_ma', 'b_hr_sr'] },
+            { id: 'juznobanatski', code: 'JBN', name: 'Južno-banatski okrug', seat: 'Pančevo', population: 260244, ev: 21, labelPos: [502, 398], arcs: ['srb_jbn', 'b_ro_jbn', '-jbn_br', '-jbn_pd', '-jbn_bg'] },
+            { id: 'beograd', code: 'BG', name: 'Grad Beograd', seat: 'Beograd', population: 1681405, ev: 136, labelPos: [392, 488], arcs: ['jb_bg', 'jbn_bg', 'bg_pd', '-bg_su', '-ko_bg', '-ma_bg', '-sr_bg'] },
+            { id: 'macvanski', code: 'MA', name: 'Mačvanski okrug', seat: 'Šabac', population: 265377, ev: 22, labelPos: [188, 536], arcs: ['sr_ma', 'ma_bg', 'ma_ko', '-ma_zl', 'b_ba_ma'] },
+            { id: 'kolubarski', code: 'KO', name: 'Kolubarski okrug', seat: 'Valjevo', population: 154497, ev: 13, labelPos: [284, 612], arcs: ['-ma_ko', 'ko_bg', 'ko_su', 'ko_mo', '-ko_zl'] },
+            { id: 'podunavski', code: 'PD', name: 'Podunavski okrug', seat: 'Smederevo', population: 175573, ev: 14, labelPos: [494, 548], arcs: ['jbn_pd', 'pd_br', 'pd_pm', '-pd_su', '-bg_pd'] },
+            { id: 'branicevski', code: 'BR', name: 'Braničevski okrug', seat: 'Požarevac', population: 156367, ev: 13, labelPos: [626, 568], arcs: ['jbn_br', 'b_ro_br', 'br_bo', '-br_pm', '-pd_br'] },
+            { id: 'borski', code: 'BO', name: 'Borski okrug', seat: 'Bor', population: 101100, ev: 8, labelPos: [792, 608], arcs: ['-br_bo', 'b_ro_bg_bo', '-bo_za'] },
+            { id: 'sumadijski', code: 'ŠU', name: 'Šumadijski okrug', seat: 'Kragujevac', population: 269728, ev: 22, labelPos: [452, 678], arcs: ['bg_su', 'pd_su', 'su_pm', 'su_rs', 'su_ra', '-su_mo', '-ko_su'] },
+            { id: 'pomoravski', code: 'PM', name: 'Pomoravski okrug', seat: 'Jagodina', population: 182047, ev: 15, labelPos: [592, 712], arcs: ['-pd_pm', 'br_pm', 'pm_za', 'pm_ni', '-pm_rs', '-su_pm'] },
+            { id: 'zajecarski', code: 'ZA', name: 'Zaječarski okrug', seat: 'Zaječar', population: 96715, ev: 8, labelPos: [766, 768], arcs: ['bo_za', 'b_bg_za', '-za_pi', '-za_ni', '-pm_za'] },
+            { id: 'zlatiborski', code: 'ZL', name: 'Zlatiborski okrug', seat: 'Užice', population: 254659, ev: 21, labelPos: [218, 796], arcs: ['ma_zl', 'ko_zl', 'zl_mo', 'zl_ra', 'b_cg_ba_zl'] },
+            { id: 'moravicki', code: 'MO', name: 'Moravički okrug', seat: 'Čačak', population: 189281, ev: 15, labelPos: [358, 764], arcs: ['-ko_mo', 'su_mo', 'mo_ra', '-zl_mo'] },
+            { id: 'raski', code: 'RA', name: 'Raški okrug', seat: 'Kraljevo', population: 296532, ev: 24, labelPos: [412, 922], arcs: ['-mo_ra', '-su_ra', 'ra_rs', 'ra_to', '-ra_km', 'b_cg_ra', '-zl_ra'] },
+            { id: 'rasinski', code: 'RS', name: 'Rasinski okrug', seat: 'Kruševac', population: 207197, ev: 17, labelPos: [548, 868], arcs: ['-su_rs', 'pm_rs', 'rs_ni', '-rs_to', '-ra_rs'] },
+            { id: 'nisavski', code: 'NI', name: 'Nišavski okrug', seat: 'Niš', population: 343950, ev: 28, labelPos: [692, 906], arcs: ['-pm_ni', 'za_ni', 'ni_pi', 'ni_ja', '-ni_to', '-rs_ni'] },
+            { id: 'pirotski', code: 'PI', name: 'Pirotski okrug', seat: 'Pirot', population: 76700, ev: 6, labelPos: [848, 976], arcs: ['za_pi', 'b_bg_pi', '-pi_ja', '-ni_pi'] },
+            { id: 'toplicki', code: 'TO', name: 'Toplički okrug', seat: 'Prokuplje', population: 77341, ev: 6, labelPos: [564, 996], arcs: ['rs_to', 'ni_to', 'to_ja', '-to_ko', '-to_km', '-ra_to'] },
+            { id: 'jablanicki', code: 'JA', name: 'Jablanički okrug', seat: 'Leskovac', population: 184502, ev: 15, labelPos: [708, 1068], arcs: ['-ni_ja', 'pi_ja', 'b_bg_ja', '-ja_pc', '-ja_kp', '-ja_ko', '-to_ja'] },
+            { id: 'pcinjski', code: 'PČ', name: 'Pčinjski okrug', seat: 'Vranje', population: 193802, ev: 16, labelPos: [754, 1236], arcs: ['ja_pc', 'b_bg_mk_pc', '-pc_kp'] }
+        ];
 
-        el.addEventListener('click', () => {
-          applyRegionClick(reg.id);
-          updateTooltipContent(reg);
+        const KOSMET_DISTRICTS = [
+            { id: 'kosovskomitrovacki', name: 'Kosovsko-mitrovački okrug', seat: 'Kosovska Mitrovica', arcs: ['ra_km', 'to_km', 'km_ko', '-km_pr', '-km_pe'] },
+            { id: 'pecki', name: 'Pećki okrug', seat: 'Peć', arcs: ['km_pe', 'pe_pr', 'b_al_cg_pe'] },
+            { id: 'kosovski', name: 'Kosovski okrug', seat: 'Priština', arcs: ['to_ko', 'ja_ko', 'ko_kp', '-pr_ko', '-km_ko'] },
+            { id: 'kosovskopomoravski', name: 'Kosovsko-pomoravski okrug', seat: 'Gnjilane', arcs: ['ja_kp', 'pc_kp', 'b_mk_kp', '-pr_kp', '-ko_kp'] },
+            { id: 'prizrenski', name: 'Prizrenski okrug', seat: 'Prizren', arcs: ['-pe_pr', 'km_pr', 'pr_ko', 'pr_kp', 'b_mk_al_pr'] }
+        ];
+
+        const STATES = {
+            tossup: { key: 'tossup', label: 'Neopredeljeno', fill: '#475569', badgeBg: 'bg-slate-600/80 text-slate-200 border-slate-500' },
+            blue: { key: 'blue', label: 'Kandidat A (Plavi)', fill: '#3b82f6', badgeBg: 'bg-blue-600 text-white border-blue-400' },
+            red: { key: 'red', label: 'Kandidat B (Crveni)', fill: '#ef4444', badgeBg: 'bg-red-600 text-white border-red-400' },
+            amber: { key: 'amber', label: 'Kandidat C (Zlatni)', fill: '#f59e0b', badgeBg: 'bg-amber-500 text-slate-950 border-amber-300' }
+        };
+
+        const districtState = {};
+        DISTRICTS_DATA.forEach(d => { districtState[d.id] = 'tossup'; });
+
+        let activeBrush = 'cycle';
+        let thirdPartyEnabled = false;
+
+        const layerDistricts = document.getElementById('layer-districts');
+        const layerKosmet = document.getElementById('layer-kosmet');
+        const layerLabels = document.getElementById('layer-labels');
+        const districtsListEl = document.getElementById('districts-list');
+        const searchInput = document.getElementById('search-district');
+        const sortSelect = document.getElementById('sort-district');
+        const tooltip = document.getElementById('tooltip');
+
+        function renderMap() {
+            layerDistricts.innerHTML = '';
+            layerKosmet.innerHTML = '';
+            layerLabels.innerHTML = '';
+
+            DISTRICTS_DATA.forEach(district => {
+                const pathData = buildPolygonPath(district.arcs);
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('id', `path-${district.id}`);
+                path.setAttribute('fill', STATES[districtState[district.id]].fill);
+                path.setAttribute('stroke', '#0c0e1b');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('stroke-linejoin', 'round');
+                path.classList.add('district-path');
+
+                path.addEventListener('click', () => handleDistrictClick(district.id, false));
+                path.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    handleDistrictClick(district.id, true);
+                });
+                path.addEventListener('mousemove', (e) => showTooltip(e, district, false));
+                path.addEventListener('mouseleave', hideTooltip);
+
+                layerDistricts.appendChild(path);
+
+                const groupLabel = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                groupLabel.classList.add('district-label');
+
+                const codeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                codeText.setAttribute('x', district.labelPos[0]);
+                codeText.setAttribute('y', district.labelPos[1] - 9);
+                codeText.setAttribute('text-anchor', 'middle');
+                codeText.setAttribute('dominant-baseline', 'central');
+                codeText.setAttribute('fill', '#e0e7ff');
+                codeText.setAttribute('font-size', district.ev >= 40 ? '18' : '13.5');
+                codeText.setAttribute('font-weight', '700');
+                codeText.textContent = district.code;
+
+                const evText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                evText.setAttribute('x', district.labelPos[0]);
+                evText.setAttribute('y', district.labelPos[1] + 10);
+                evText.setAttribute('text-anchor', 'middle');
+                evText.setAttribute('dominant-baseline', 'central');
+                evText.setAttribute('fill', '#ffffff');
+                evText.setAttribute('font-size', district.ev >= 40 ? '25' : district.ev >= 20 ? '19.5' : '16.5');
+                evText.setAttribute('font-weight', '900');
+                evText.textContent = district.ev;
+
+                groupLabel.appendChild(codeText);
+                groupLabel.appendChild(evText);
+                layerLabels.appendChild(groupLabel);
+            });
+
+            KOSMET_DISTRICTS.forEach(kDistrict => {
+                const pathData = buildPolygonPath(kDistrict.arcs);
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', 'url(#kosmet-hatch)');
+                path.setAttribute('stroke', '#4f46e5');
+                path.setAttribute('stroke-opacity', '0.6');
+                path.setAttribute('stroke-width', '1.6');
+                path.setAttribute('stroke-dasharray', '5 4');
+                path.setAttribute('stroke-linejoin', 'round');
+                path.classList.add('kosmet-path');
+
+                path.addEventListener('mousemove', (e) => showTooltip(e, kDistrict, true));
+                path.addEventListener('mouseleave', hideTooltip);
+
+                layerKosmet.appendChild(path);
+            });
+
+            const outerPathData = buildPolylinePath([
+                'b_hu_sb', 'b_ro_snb', 'b_ro_srb', 'b_ro_jbn', 'b_ro_br', 'b_ro_bg_bo',
+                'b_bg_za', 'b_bg_pi', 'b_bg_ja', 'b_bg_mk_pc', 'b_mk_kp', 'b_mk_al_pr',
+                'b_al_cg_pe', 'b_cg_ra', 'b_cg_ba_zl', 'b_ba_ma', 'b_hr_sr', 'b_hr_jb', 'b_hr_zb'
+            ]) + ' Z';
+            document.getElementById('serbia-outer-border').setAttribute('d', outerPathData);
+
+            const adminLineData = buildPolylinePath([
+                'ra_km', 'to_km', 'to_ko', 'ja_ko', 'ja_kp', 'pc_kp'
+            ]);
+            const adminLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            adminLine.setAttribute('d', adminLineData);
+            adminLine.setAttribute('fill', 'none');
+            adminLine.setAttribute('stroke', '#a5b4fc');
+            adminLine.setAttribute('stroke-width', '2.6');
+            adminLine.setAttribute('stroke-dasharray', '9 5');
+            adminLine.setAttribute('pointer-events', 'none');
+            layerKosmet.appendChild(adminLine);
+
+            const bannerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            bannerGroup.setAttribute('transform', 'translate(496, 1184) rotate(-20)');
+
+            const bannerBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bannerBg.setAttribute('x', '-136');
+            bannerBg.setAttribute('y', '-26');
+            bannerBg.setAttribute('width', '272');
+            bannerBg.setAttribute('height', '52');
+            bannerBg.setAttribute('rx', '12');
+            bannerBg.setAttribute('fill', 'rgba(12, 14, 27, 0.94)');
+            bannerBg.setAttribute('stroke', '#818cf8');
+            bannerBg.setAttribute('stroke-width', '2.4');
+
+            const bannerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            bannerText.setAttribute('x', '0');
+            bannerText.setAttribute('y', '0');
+            bannerText.setAttribute('text-anchor', 'middle');
+            bannerText.setAttribute('dominant-baseline', 'central');
+            bannerText.setAttribute('fill', '#ffffff');
+            bannerText.setAttribute('font-size', '23');
+            bannerText.setAttribute('font-weight', '900');
+            bannerText.classList.add('kosmet-banner-text');
+            bannerText.textContent = 'OKUPIRANO';
+
+            bannerGroup.appendChild(bannerBg);
+            bannerGroup.appendChild(bannerText);
+            layerLabels.appendChild(bannerGroup);
+        }
+
+        function handleDistrictClick(districtId, reverse = false) {
+            const current = districtState[districtId];
+            const cycleOrder = thirdPartyEnabled
+                ? ['tossup', 'blue', 'red', 'amber']
+                : ['tossup', 'blue', 'red'];
+
+            let nextState;
+            if (activeBrush !== 'cycle' && !reverse) {
+                nextState = current === activeBrush ? 'tossup' : activeBrush;
+            } else {
+                const idx = cycleOrder.indexOf(current);
+                if (idx === -1) {
+                    nextState = 'tossup';
+                } else if (reverse) {
+                    nextState = cycleOrder[(idx - 1 + cycleOrder.length) % cycleOrder.length];
+                } else {
+                    nextState = cycleOrder[(idx + 1) % cycleOrder.length];
+                }
+            }
+
+            setDistrictState(districtId, nextState);
+            updateScoreboard();
+            renderSidebarList();
+        }
+
+        function setDistrictState(districtId, stateKey) {
+            districtState[districtId] = stateKey;
+            const pathEl = document.getElementById(`path-${districtId}`);
+            if (pathEl) {
+                pathEl.setAttribute('fill', STATES[stateKey].fill);
+            }
+        }
+
+        function updateScoreboard() {
+            let blueEv = 0;
+            let redEv = 0;
+            let amberEv = 0;
+            let tossupEv = 0;
+
+            DISTRICTS_DATA.forEach(d => {
+                const st = districtState[d.id];
+                if (st === 'blue') blueEv += d.ev;
+                else if (st === 'red') redEv += d.ev;
+                else if (st === 'amber') amberEv += d.ev;
+                else tossupEv += d.ev;
+            });
+
+            const total = 538;
+            document.getElementById('score-blue').textContent = blueEv;
+            document.getElementById('score-red').textContent = redEv;
+            document.getElementById('score-tossup').textContent = tossupEv;
+            document.getElementById('score-amber').textContent = amberEv;
+
+            const otherWrap = document.getElementById('other-score-wrap');
+            if (amberEv > 0 || thirdPartyEnabled) {
+                otherWrap.classList.remove('hidden');
+            } else {
+                otherWrap.classList.add('hidden');
+            }
+
+            const bluePct = (blueEv / total) * 100;
+            const amberPct = (amberEv / total) * 100;
+            const tossupPct = (tossupEv / total) * 100;
+            const redPct = (redEv / total) * 100;
+
+            const barBlue = document.getElementById('bar-blue');
+            const barAmber = document.getElementById('bar-amber');
+            const barTossup = document.getElementById('bar-tossup');
+            const barRed = document.getElementById('bar-red');
+
+            barBlue.style.width = `${bluePct}%`;
+            barBlue.textContent = blueEv >= 24 ? blueEv : '';
+
+            barAmber.style.width = `${amberPct}%`;
+            barAmber.textContent = amberEv >= 24 ? amberEv : '';
+
+            barTossup.style.width = `${tossupPct}%`;
+
+            barRed.style.width = `${redPct}%`;
+            barRed.textContent = redEv >= 24 ? redEv : '';
+
+            const winnerBanner = document.getElementById('winner-banner');
+            const winnerText = document.getElementById('winner-text');
+            const blueName = document.getElementById('name-blue').value.trim() || 'Kandidat A';
+            const redName = document.getElementById('name-red').value.trim() || 'Kandidat B';
+
+            if (blueEv >= 270) {
+                winnerBanner.classList.remove('hidden');
+                winnerText.textContent = `🏆 ${blueName} pobeđuje sa ${blueEv} od 538 elektora!`;
+            } else if (redEv >= 270) {
+                winnerBanner.classList.remove('hidden');
+                winnerText.textContent = `🏆 ${redName} pobeđuje sa ${redEv} od 538 elektora!`;
+            } else if (amberEv >= 270) {
+                winnerBanner.classList.remove('hidden');
+                winnerText.textContent = `🏆 Kandidat C pobeđuje sa ${amberEv} od 538 elektora!`;
+            } else {
+                winnerBanner.classList.add('hidden');
+            }
+        }
+
+        function renderSidebarList() {
+            const query = searchInput.value.toLowerCase().trim();
+            const sortBy = sortSelect.value;
+
+            const sorted = [...DISTRICTS_DATA].sort((a, b) => {
+                if (sortBy === 'ev-asc') return a.ev - b.ev;
+                if (sortBy === 'name-asc') return a.name.localeCompare(b.name, 'sr');
+                return b.ev - a.ev;
+            });
+
+            districtsListEl.innerHTML = '';
+
+            sorted.forEach(d => {
+                if (query && !d.name.toLowerCase().includes(query) && !d.seat.toLowerCase().includes(query)) {
+                    return;
+                }
+
+                const st = districtState[d.id];
+                const stateObj = STATES[st];
+
+                const row = document.createElement('div');
+                row.className = 'w-full grid grid-cols-12 items-center py-2.5 px-2.5 hover:bg-[#1c224a]/70 transition rounded-lg group';
+
+                row.innerHTML = `
+                    <button type="button" class="col-span-6 flex items-center gap-2 pr-1 text-left focus:outline-none">
+                        <span class="w-3 h-3 rounded-full shrink-0 border border-white/30" style="background-color: ${stateObj.fill};"></span>
+                        <div class="truncate">
+                            <div class="text-xs sm:text-sm font-semibold text-white group-hover:text-indigo-200 truncate">${d.name}</div>
+                            <div class="text-[10px] text-indigo-300/80 truncate">Sedište: ${d.seat}</div>
+                        </div>
+                    </button>
+                    <div class="col-span-3 text-right text-xs text-indigo-200 font-medium">
+                        ${d.population.toLocaleString('sr-RS')}
+                    </div>
+                    <div class="col-span-3 flex items-center justify-end gap-1.5">
+                        <button type="button" title="Promeni pobednika u okrugu" class="px-2.5 py-0.5 rounded-md text-xs font-extrabold border transition hover:brightness-110 ${stateObj.badgeBg}">
+                            ${d.ev}
+                        </button>
+                    </div>
+                `;
+
+                row.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('click', () => handleDistrictClick(d.id, false));
+                });
+
+                districtsListEl.appendChild(row);
+            });
+
+            if (!query || 'kosovo i metohija okupirano'.includes(query)) {
+                const kosmetRow = document.createElement('div');
+                kosmetRow.className = 'w-full grid grid-cols-12 items-center py-2.5 px-2.5 bg-[#0c0e1b]/80 text-left rounded-lg mt-1.5 border border-[#2d3770]';
+                kosmetRow.innerHTML = `
+                    <div class="col-span-7 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full shrink-0 bg-[#141834] border border-indigo-400"></span>
+                        <div>
+                            <div class="text-xs sm:text-sm font-bold text-indigo-200">Kosovo i Metohija (5 okruga)</div>
+                            <div class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Okupirano • Izuzeto</div>
+                        </div>
+                    </div>
+                    <div class="col-span-5 flex justify-end">
+                        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-[#0c0e1b] text-amber-300 border border-[#2d3770] uppercase">
+                            OKUPIRANO (0)
+                        </span>
+                    </div>
+                `;
+                districtsListEl.appendChild(kosmetRow);
+            }
+        }
+
+        function showTooltip(event, district, isOccupied) {
+            tooltip.classList.remove('hidden');
+            document.getElementById('tt-name').textContent = district.name;
+            document.getElementById('tt-seat').textContent = `Sedište okruga: ${district.seat}`;
+
+            const detailsEl = document.getElementById('tt-details');
+            const occupiedNote = document.getElementById('tt-occupied-note');
+
+            if (isOccupied) {
+                detailsEl.classList.add('hidden');
+                occupiedNote.classList.remove('hidden');
+            } else {
+                detailsEl.classList.remove('hidden');
+                occupiedNote.classList.add('hidden');
+                document.getElementById('tt-pop').textContent = district.population.toLocaleString('sr-RS');
+                document.getElementById('tt-ev').textContent = `${district.ev} elektora`;
+
+                const st = districtState[district.id];
+                const blueName = document.getElementById('name-blue').value.trim() || 'Kandidat A';
+                const redName = document.getElementById('name-red').value.trim() || 'Kandidat B';
+
+                let statusLabel = 'Neopredeljeno';
+                if (st === 'blue') statusLabel = blueName;
+                else if (st === 'red') statusLabel = redName;
+                else if (st === 'amber') statusLabel = 'Kandidat C';
+
+                document.getElementById('tt-status').textContent = statusLabel;
+            }
+
+            const pad = 14;
+            let x = event.clientX + pad;
+            let y = event.clientY + pad;
+            const rect = tooltip.getBoundingClientRect();
+
+            if (x + rect.width > window.innerWidth - 10) {
+                x = event.clientX - rect.width - pad;
+            }
+            if (y + rect.height > window.innerHeight - 10) {
+                y = event.clientY - rect.height - pad;
+            }
+
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        }
+
+        function hideTooltip() {
+            tooltip.classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2600);
+        }
+
+        function applyScenario(scenario) {
+            if (!scenario) return;
+
+            const vojvodinaAndBg = new Set([
+                'severnobacki', 'zapadnobacki', 'severnobanatski', 'juznobacki',
+                'srednjobanatski', 'sremski', 'juznobanatski', 'beograd'
+            ]);
+            const northHalf = new Set([
+                'severnobacki', 'zapadnobacki', 'severnobanatski', 'juznobacki',
+                'srednjobanatski', 'sremski', 'juznobanatski', 'beograd', 'macvanski', 'podunavski'
+            ]);
+            const centralSerbia = new Set([
+                'macvanski', 'kolubarski', 'podunavski', 'branicevski', 'borski',
+                'sumadijski', 'pomoravski', 'zajecarski', 'zlatiborski', 'moravicki',
+                'raski', 'rasinski', 'nisavski', 'pirotski', 'toplicki', 'jablanicki', 'pcinjski'
+            ]);
+            const egalBlue = new Set([
+                'beograd', 'juznobacki', 'sremski', 'juznobanatski', 'severnobacki',
+                'zapadnobacki', 'srednjobanatski', 'severnobanatski'
+            ]);
+
+            DISTRICTS_DATA.forEach(d => {
+                let st = 'tossup';
+                if (scenario === 'egal') {
+                    st = egalBlue.has(d.id) ? 'blue' : 'red';
+                } else if (scenario === 'north-south') {
+                    st = northHalf.has(d.id) ? 'blue' : 'red';
+                } else if (scenario === 'bg-vojvodina') {
+                    st = vojvodinaAndBg.has(d.id) ? 'blue' : 'red';
+                } else if (scenario === 'central-serbia') {
+                    st = centralSerbia.has(d.id) ? 'red' : 'blue';
+                } else if (scenario === 'landslide-a') {
+                    st = 'blue';
+                } else if (scenario === 'landslide-b') {
+                    st = 'red';
+                } else if (scenario === 'random') {
+                    const pool = thirdPartyEnabled ? ['blue', 'red', 'blue', 'red', 'amber'] : ['blue', 'red'];
+                    st = pool[Math.floor(Math.random() * pool.length)];
+                }
+                setDistrictState(d.id, st);
+            });
+
+            updateScoreboard();
+            renderSidebarList();
+            showToast('Izborni scenario je uspešno primenjen.');
+        }
+
+        document.querySelectorAll('.brush-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.brush-btn').forEach(b => {
+                    b.classList.remove('bg-[#4f46e5]', 'text-white', 'border-indigo-400');
+                    b.classList.add('bg-[#0c0e1b]');
+                });
+                btn.classList.remove('bg-[#0c0e1b]');
+                btn.classList.add('bg-[#4f46e5]', 'text-white', 'border-indigo-400');
+                activeBrush = btn.dataset.brush;
+            });
         });
 
-        el.addEventListener('mousemove', (e) => {
-          updateTooltipContent(reg);
-          tooltip.classList.remove('hidden');
-          const offsetX = 14;
-          const offsetY = 14;
-          let left = e.clientX + offsetX;
-          let top = e.clientY + offsetY;
-          if (left + 190 > window.innerWidth) left = e.clientX - 195;
-          if (top + 90 > window.innerHeight) top = e.clientY - 95;
-          tooltip.style.left = `${left}px`;
-          tooltip.style.top = `${top}px`;
+        document.getElementById('toggle-third-party').addEventListener('change', (e) => {
+            thirdPartyEnabled = e.target.checked;
+            const btnAmber = document.getElementById('btn-brush-amber');
+            const legendThird = document.getElementById('legend-third-party');
+
+            if (thirdPartyEnabled) {
+                btnAmber.classList.remove('hidden');
+                legendThird.classList.remove('hidden');
+                legendThird.classList.add('flex');
+            } else {
+                btnAmber.classList.add('hidden');
+                legendThird.classList.add('hidden');
+                legendThird.classList.remove('flex');
+                if (activeBrush === 'amber') {
+                    document.querySelector('[data-brush="cycle"]').click();
+                }
+                DISTRICTS_DATA.forEach(d => {
+                    if (districtState[d.id] === 'amber') {
+                        setDistrictState(d.id, 'tossup');
+                    }
+                });
+            }
+            updateScoreboard();
+            renderSidebarList();
         });
 
-        el.addEventListener('mouseleave', () => {
-          tooltip.classList.add('hidden');
-        });
-      });
-
-      function updateTooltipContent(reg) {
-        const palette = getPalette();
-        const st = state.regions[reg.id];
-        document.getElementById('tt-name').textContent = reg.name;
-        document.getElementById('tt-electors').textContent = reg.electors;
-        document.getElementById('tt-dot').style.backgroundColor = palette[st].fill;
-        document.getElementById('tt-status').textContent = palette[st].text;
-      }
-
-      // Izbor četkice
-      document.querySelectorAll('.brush-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.brush-btn').forEach(b => {
-            b.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
-            b.classList.add('bg-slate-100', 'text-slate-700');
-          });
-          btn.classList.remove('bg-slate-100', 'text-slate-700');
-          btn.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
-          state.brush = btn.getAttribute('data-brush');
-        });
-      });
-
-      // Imena i boje kandidata
-      document.getElementById('name-a').addEventListener('input', (e) => {
-        state.nameA = e.target.value || 'Kandidat A';
-        renderAll();
-      });
-      document.getElementById('name-b').addEventListener('input', (e) => {
-        state.nameB = e.target.value || 'Kandidat B';
-        renderAll();
-      });
-      document.getElementById('color-a').addEventListener('input', (e) => {
-        state.colorA = e.target.value;
-        renderAll();
-      });
-      document.getElementById('color-b').addEventListener('input', (e) => {
-        state.colorB = e.target.value;
-        renderAll();
-      });
-
-      // Prekidači prikaza na mapi
-      document.getElementById('toggle-names').addEventListener('change', (e) => {
-        document.querySelectorAll('.region-label-name').forEach(lbl => {
-          lbl.style.display = e.target.checked ? 'block' : 'none';
-        });
-      });
-
-
-      // Predefinisani scenariji
-      document.getElementById('preset-select').addEventListener('change', (e) => {
-        applyPreset(e.target.value);
-      });
-
-      // Dugmad za brzu kontrolu
-      document.getElementById('btn-reset').addEventListener('click', () => {
-        document.getElementById('preset-select').value = 'empty';
-        applyPreset('empty');
-      });
-
-      document.getElementById('btn-all-a').addEventListener('click', () => {
-        REGIONS.forEach(r => state.regions[r.id] = 'a_safe');
-        renderAll();
-      });
-
-      document.getElementById('btn-all-b').addEventListener('click', () => {
-        REGIONS.forEach(r => state.regions[r.id] = 'b_safe');
-        renderAll();
-      });
-
-      document.getElementById('btn-simulate').addEventListener('click', () => {
-        const options = ['a_safe', 'a_likely', 'a_lean', 'b_lean', 'b_likely', 'b_safe'];
-        REGIONS.forEach(r => {
-          const rand = options[Math.floor(Math.random() * options.length)];
-          state.regions[r.id] = rand;
-        });
-        renderAll();
-      });
-
-      // Kopiranje rezultata u clipboard (iFrame-safe metod)
-      document.getElementById('btn-share').addEventListener('click', () => {
-        const palette = getPalette();
-        let sumA = 0, sumB = 0, sumU = 0;
-        const lines = REGIONS.map(r => {
-          const st = state.regions[r.id];
-          if (st.startsWith('a_')) sumA += r.electors;
-          else if (st.startsWith('b_')) sumB += r.electors;
-          else sumU += r.electors;
-          return `• ${r.name} (${r.electors}): ${palette[st].text}`;
+        document.getElementById('preset-select').addEventListener('change', (e) => {
+            applyScenario(e.target.value);
+            e.target.value = '';
         });
 
-        const summary = [
-          `🗳️ 51 DO POBEDE — Projekcija rezultata`,
-          `${state.nameA}: ${sumA} | ${state.nameB}: ${sumB} | Neodlučno: ${sumU}`,
-          `----------------------------------------`,
-          ...lines
-        ].join('\n');
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            DISTRICTS_DATA.forEach(d => setDistrictState(d.id, 'tossup'));
+            updateScoreboard();
+            renderSidebarList();
+            showToast('Mapa je resetovana (svih 538 elektora neopredeljeno).');
+        });
 
-        const tempInput = document.createElement('textarea');
-        tempInput.value = summary;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
+        document.getElementById('btn-share').addEventListener('click', () => {
+            const blueName = document.getElementById('name-blue').value.trim() || 'Kandidat A';
+            const redName = document.getElementById('name-red').value.trim() || 'Kandidat B';
+            const blueEv = document.getElementById('score-blue').textContent;
+            const redEv = document.getElementById('score-red').textContent;
+            const tossupEv = document.getElementById('score-tossup').textContent;
+            const amberEv = document.getElementById('score-amber').textContent;
 
-        showToast('Projekcija rezultata je kopirana u clipboard!');
-      });
+            let summary = `270 do Pobede — Srbija (538 elektora)\n${blueName}: ${blueEv}\n${redName}: ${redEv}`;
+            if (thirdPartyEnabled || Number(amberEv) > 0) {
+                summary += `\nKandidat C: ${amberEv}`;
+            }
+            summary += `\nNeopredeljeno: ${tossupEv}\n(Kosovo i Metohija: OKUPIRANO — 0 elektora)`;
 
-      // Početno iscrtavanje
-      renderAll();
-    });
-  </script>
+            const tempArea = document.createElement('textarea');
+            tempArea.value = summary;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempArea);
+
+            showToast('Rezultat je kopiran u privremenu memoriju!');
+        });
+
+        searchInput.addEventListener('input', renderSidebarList);
+        sortSelect.addEventListener('change', renderSidebarList);
+        document.getElementById('name-blue').addEventListener('input', updateScoreboard);
+        document.getElementById('name-red').addEventListener('input', updateScoreboard);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMap();
+            updateScoreboard();
+            renderSidebarList();
+        });
+    </script>
 </body>
 </html>
